@@ -32,7 +32,7 @@
 		
 		public function __construct()
 		{
-			$this->_request = new HttpRequest();
+			$this->_request = new AlphaMailHttpRequest();
 		    $this->_request->addInboundFilter(new JsonDeserializerChainItem());
 		}
 		
