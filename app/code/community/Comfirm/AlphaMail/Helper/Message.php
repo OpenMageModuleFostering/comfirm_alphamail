@@ -169,28 +169,6 @@
 	        return $result;
 	    }
 
-	    /*public function getUniqueProductsFromCollection($product_lookup, $product_collection, $item_limit){
-	    	$products = array();
-
-        	// Scan for related products
-        	foreach($product_collection as $product_item){
-        		$product = $product_item->getProduct();
-        		foreach($product->getRelatedProductCollection() as $related_product){
-        			// Only include products that aren't in the order
-        			if(!array_key_exist((int)$related_product->getId(), $products_lookup)){
-	        			if(count($products) < $item_limit){
-				            $related_product->load();
-	        				$products[] = $this->getProductData($related_product);
-	        			}else{
-	        				break 2;
-	        			}
-	        		}
-        		}
-        	}
-
-        	return $products;
-	    }*/
-
 	    public function getProductItemImages($product_item){
 	        $result = new stdClass();
 
@@ -220,13 +198,6 @@
 	            $product->load();
 	            $item = $this->getProductData($product);
 
-	            /*$item->product_id = (int)$product->getId();
-	            $item->name = $product->getName();
-	            $item->sku = $product->getSku();
-	            $item->url = $product->getProductUrl();
-	            $item->images = $this->getProductItemImages($product);
-	            $item->price = (float)$product->getPrice();*/
-
 	            $items[] = $item;
 	        }
 
@@ -251,6 +222,9 @@
 	                $item->price = Mage::helper('directory')->currencyConvert($item->price,
 	                    $base_currency_code, $current_currency_code);
 	            }
+
+				$currency = Mage::app()->getLocale()->currency($current_currency_code);
+	            $item->price_formatted = $currency->toCurrency($item->price);
 
 	            return $item;
 	    }
