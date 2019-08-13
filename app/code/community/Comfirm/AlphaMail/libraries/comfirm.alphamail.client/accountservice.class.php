@@ -27,11 +27,11 @@
     $relative_path = dirname(__FILE__);
 
     // Include service contract
-    require_once($relative_path . "/projectservice.interface.php");
+    require_once($relative_path . "/accountservice.interface.php");
     
     // Include entities
     require_once($relative_path . "/entities/serviceresponse.class.php");
-    require_once($relative_path . "/entities/project.class.php");
+    require_once($relative_path . "/entities/account.class.php");
     
     // Include exceptions
     require_once($relative_path . "/exceptions/alphamailserviceexception.class.php");
@@ -42,10 +42,10 @@
     // Include restful client
     require_once($relative_path . "/../comfirm.services.client.rest/restful.class.php");
     
-    class AlphaMailProjectService implements IProjectService
+    class AlphaMailAccountService implements IAccountService
     {
         private $_client = null;
-        private $_service_url = null, $_api_token;
+        private $_service_url = null;
         
         protected function __construct()
         {
@@ -54,7 +54,7 @@
         
         public static function create()
         {
-            return new AlphaMailProjectService();
+            return new AlphaMailAccountService();
         }
         
         public function setServiceUrl($service_url)
@@ -63,28 +63,22 @@
             return $this;
         }
         
-        public function setApiToken($api_token)
-        {
-            $this->_api_token = $api_token;
-            $this->_client->setBasicAuthentication(null, $api_token);
-            return $this;
-        }
-        
-        public function getAll()
+        public function createNew($email, $person_name, $password, $language, $captcha_id, $plan_id)
         {
             $response = null;
+
+            $request = new CreateAccountBody();
+            $request->email = $email;
+            $request->person_name = $person_name;
+            $request->password = $password;
+            $request->language = $language;
+            $request->captcha_id = $captcha_id;
+            $request->plan_id = $plan_id;
             
             try
             {
-                $raw_response = $this->_client->get($this->_service_url . "/projects");
-                $response = $this->cast($raw_response->result, "ServiceResponse");
-                
-                if(is_array($response->result)){
-                    foreach($response->result as $key => $value){
-                        $response->result[$key] = $this->cast($value, "Project");
-                    }
-                }
-                
+                $raw_response = $this->_client->post($this->_service_url . "/account/", json_encode($request));
+                $response = $this->cast($raw_response->result, "CreateAccountResult");
                 $this->handleErrors($raw_response);
             }
             catch(AlphaMailServiceException $exception)
@@ -99,17 +93,19 @@
             return $response->result;
         }
 
-        public function getSingle($project_id)
+        public function login($username, $password)
         {
             $response = null;
+
+            $request = new AccountLoginBody();
+            $request->username = $username;
+            $request->password = $password;
             
             try
             {
-                $raw_response = $this->_client->get($this->_service_url . "/projects/" . $project_id);
+                $raw_response = $this->_client->post($this->_service_url . "/account/login/", json_encode($request));
+                $response = $this->cast($raw_response->result, "AcconutLoginResult");
                 $this->handleErrors($raw_response);
-
-                $response = $this->cast($raw_response->result, "ServiceResponse");
-                $response->result = $this->cast($response->result, "DetailedProject");
             }
             catch(AlphaMailServiceException $exception)
             {
@@ -123,50 +119,6 @@
             return $response->result;
         }
 
-        public function update($project)
-        {
-            $response = null;
-            
-            try
-            {
-                $raw_response = $this->_client->put($this->_service_url . "/projects/" . $project->id, json_encode($project));
-                $this->handleErrors($raw_response);
-                $response = $this->cast($raw_response->result, "ServiceResponse");
-            }
-            catch(AlphaMailServiceException $exception)
-            {
-                throw $exception;
-            }
-            catch(Exception $exception)
-            {
-                throw new AlphaMailServiceException($exception->getMessage(), null, null, $exception);
-            }
-            
-            return (bool)$response->result;
-        }
-
-        public function add($project)
-        {
-            $response = null;
-            
-            try
-            {
-                $raw_response = $this->_client->post($this->_service_url . "/projects/", json_encode($project));
-                $this->handleErrors($raw_response);
-                $response = $this->cast($raw_response->result, "ServiceResponse");
-            }
-            catch(AlphaMailServiceException $exception)
-            {
-                throw $exception;
-            }
-            catch(Exception $exception)
-            {
-                throw new AlphaMailServiceException($exception->getMessage(), null, null, $exception);
-            }
-            
-            return (int)$response->result->id;
-        }
-        
         private function handleErrors($response)
         {
             switch ($response->head->status->code)
@@ -197,7 +149,9 @@
 
                 // Validation error
                 case 405: // MethodNotAllowed:
+                case 404: // MethodNotAllowed:
                 case 400: // BadRequest:
+                case 422: // Unprocessable Entity:
                     throw new AlphaMailValidationException(
                         $response->result->message,
                         $response->head->status,
