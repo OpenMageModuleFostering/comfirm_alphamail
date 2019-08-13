@@ -140,6 +140,8 @@
                     $helper->logDebug("Mail sent with template '" . $template_name . "' was unhandled (not mapped).");
                 }
             }catch(Exception $exception){
+                $is_handled = false;
+                // TODO: LOG THIS EXCEPTION!!!
                 //Mage::logException($exception);
                 //$helper->logError('Exception thrown when trying to queue mail: ' . $exception->__toString(), $send_id);
             }

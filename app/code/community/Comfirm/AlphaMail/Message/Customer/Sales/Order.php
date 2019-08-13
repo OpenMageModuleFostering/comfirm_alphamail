@@ -65,13 +65,18 @@
 			$items = array();
 			
 			foreach($order_items as $item){
+				// Skip child items
+    			if($item->getParentItem()) continue;
+
 				$result = new stdClass();
-				$product = $item->getProduct();
-				
+
 				$result->product_id = (int)$item->getId();
 		        $result->name = $item->getName();
 		        $result->sku = $item->getSku();
 		        $result->quantity = (int)$item->getQtyOrdered();
+
+		        $product = $this->_helper->getOrderItemProduct($item);
+
 		        $result->url = $product->getProductUrl();
 		        $result->images = $this->_helper->getProductItemImages($product);
 

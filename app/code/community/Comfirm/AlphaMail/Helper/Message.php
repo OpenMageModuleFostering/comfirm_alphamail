@@ -95,6 +95,18 @@
 	        return $result;
 	    }
 
+	    // Get order item product. Written for compatibility with 1.6.0
+	    public function getOrderItemProduct($item){
+	    	$product = $item->getProduct();
+
+	    	if($product == null){
+				$product = Mage::getModel('catalog/product');
+				$product->load($product->getIdBySku($item->getSku()));
+	    	}
+
+	    	return $product;
+	    }
+
 	    public function getRecommendationData($limit_per_list, $order = null){
 	        $result = new stdClass();
 
@@ -113,9 +125,9 @@
 
 	        	// Scan for related products
 	        	foreach($order->getItemsCollection() as $item){
-	        		$product = $item->getProduct();
+	        		$product = $this->getOrderItemProduct($item);
 
-	        		// Need to clean this up, break out to sepearet function.
+	        		// Need to clean this up, break out to seperate function.
 	        		// Also optimize. E.g. products can be cached, in order to save data recommendations
 	        		// could have a products array and top selling, related, upsell, cross-sell could just be product IDs.
 	        		// Could also be a clean way to have an array of products to recommend if you just want to print some
@@ -172,8 +184,26 @@
 	    public function getProductItemImages($product_item){
 	        $result = new stdClass();
 
-	        $result->small = $product_item->getSmallImageUrl();
-	        $result->thumbnail = $product_item->getThumbnailUrl();
+        	// In case 'Image file was not found.' (bad way of Magneto to use generic exception)..
+        	// Just discard..
+
+	        try
+	        {
+		        $result->small = $product_item->getSmallImageUrl();
+	        }
+	        catch(Exception $exception)
+	        {
+	        	$result->small = null;
+	        }
+
+	        try
+	        {
+		        $result->thumbnail = $product_item->getThumbnailUrl();
+	        }
+	        catch(Exception $exception)
+	        {
+	        	$result->small = null;
+	        }
 
 	        return $result;
 	    }
