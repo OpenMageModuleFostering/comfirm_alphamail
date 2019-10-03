@@ -1,16 +1,19 @@
 {
-    "name": "OpenMageModuleFostering/Comfirm_AlphaMail",
+    "name": "OpenMageModuleFostering\/Comfirm_AlphaMail",
     "type": "magento-module",
     "license": "MIT",
     "homepage": "",
     "description": "Transactional email module for integration with AlphaMail.",
     "authors": [
-    {
-        "name": "comfirm",
-        "email": "robin.orheden@amail.io"
-    }
-],
+        {
+            "name": "comfirm",
+            "email": "robin.orheden@amail.io"
+        }
+    ],
     "suggest": {
-        "magento-hackathon/magento-composer-installer": "*"
-    }
+        "magento-hackathon\/magento-composer-installer": "*"
+    },
+    "keywords": [
+        "openmage-module"
+    ]
 }
